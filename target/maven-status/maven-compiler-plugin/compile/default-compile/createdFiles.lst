@@ -1,0 +1,4 @@
+com/example/trivytestapp/controller/TodoController.class
+com/example/trivytestapp/model/Todo.class
+com/example/trivytestapp/TodoApplication.class
+com/example/trivytestapp/repository/TodoRepository.class
