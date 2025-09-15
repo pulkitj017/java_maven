@@ -1,125 +1,4 @@
-# name: Java Maven SBOM Pipeline
 
-# on:
-#   workflow_dispatch:
-#   push:
-#     branches:
-#       - master
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-22.04
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-
-#       - name: Set up JDK 17
-#         uses: actions/setup-java@v4
-#         with:
-#           distribution: 'temurin'
-#           java-version: '17'
-
-#       - name: Build with Maven
-#         run: mvn -B package --file pom.xml
-
-#       - name: Upload project artifact
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: project
-#           path: .
-
-#   sbom_scan:
-#     runs-on: ubuntu-22.04
-#     needs: build
-#     steps:
-#       - name: Download project artifact
-#         uses: actions/download-artifact@v4
-#         with:
-#           name: project
-
-#       - name: Install Java Maven
-#         run: |
-#           rm -rf target
-#           chmod +x java-install.sh
-#           sudo bash ./java-install.sh
-
-#       - name: Debug target folder
-#         run: |
-#           echo "=== Root directory ==="
-#           ls -l
-#           echo "=== target folder ==="
-#           ls -l target || echo "target folder does not exist"
-#           echo "=== generated-resources folder ==="
-#           ls -l target/generated-resources || echo "generated-resources folder does not exist"
-#           echo "=== licenses folder ==="
-#           ls -l target/generated-resources/licenses || echo "licenses folder does not exist"
-#           echo "=== List licenses.xml files ==="
-#           find target/generated-resources/licenses -name "*.xml" || echo "No XML files found"
-
-#       - name: Install PowerShell
-#         run: |
-#           wget https://github.com/PowerShell/PowerShell/releases/download/v7.5.0/powershell_7.5.0-1.deb_amd64.deb
-#           sudo dpkg -i powershell_7.5.0-1.deb_amd64.deb || true
-#           sudo apt --fix-broken install -y
-#           pwsh --version
-#           rm -rf powershell_7.5.0-1.deb_amd64.deb
-
-#       - name: Run get-details-1.ps1
-#         run: |
-#           pwsh -File ./get-details-1.ps1
-#           echo "After get-details-1.ps1:"
-#           ls -l
-
-#       - name: Run get-details-2.ps1
-#         run: |
-#           pwsh -File ./get-details-2.ps1
-#           echo "After get-details-2.ps1:"
-#           ls -l
-
-#       - name: Run merge-details-1.ps1
-#         run: |
-#           pwsh -File ./merge-details-1.ps1
-#           echo "After merge-details-1.ps1:"
-#           ls -l
-
-#       - name: Debug formatted-licenses.txt
-#         run: |
-#           echo "=== Contents of formatted-licenses.txt ==="
-#           cat formatted-licenses.txt || echo "formatted-licenses.txt not found"
-#           echo "=========================================="
-      
-#       - name: Debug formatted-outdated.txt
-#         run: |
-#           echo "=== Contents of formatted-outdated.txt ==="
-#           cat formatted-outdated.txt || echo "formatted-outdated.txt not found"
-#           echo "=========================================="
-
-
-#       - name: Run merge-details-2.ps1
-#         run: |
-#           pwsh -File ./merge-details-2.ps1
-#           echo "After merge-details-2.ps1:"
-#           ls -l
-#           cat sbom-result.txt || echo "sbom-result.txt not found"
-
-#       # - name: Run Trivy Scan
-#       #   run: |
-#       #     bash ./trivy.sh
-#       #     echo "After trivy.sh:"
-#       #     ls -l
-#       #     cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
-
-#       # - name: Upload Trivy Vulnerabilities
-#       #   uses: actions/upload-artifact@v4
-#       #   with:
-#       #     name: trivy-vulnerabilities
-#       #     path: trivy-vulnerabilities.txt
-
-#       - name: Upload SBOM Result
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: sbom-result
-#           path: sbom-result.txt
 name: Java Maven SBOM Pipeline
 
 on:
@@ -211,18 +90,18 @@ jobs:
           ls -l
           cat sbom-result.txt || echo "sbom-result.txt not found"
 
-      # - name: Run Trivy Scan
-      #   run: |
-      #     bash ./trivy.sh
-      #     echo "After trivy.sh:"
-      #     ls -l
-      #     cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
+      - name: Run Trivy Scan
+        run: |
+          bash ./trivy.sh
+          echo "After trivy.sh:"
+          ls -l
+          cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
 
-      # - name: Upload Trivy Vulnerabilities
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: trivy-vulnerabilities
-      #     path: trivy-vulnerabilities.txt
+      - name: Upload Trivy Vulnerabilities
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-vulnerabilities
+          path: trivy-vulnerabilities.txt
 
       - name: Upload SBOM Result
         uses: actions/upload-artifact@v4
