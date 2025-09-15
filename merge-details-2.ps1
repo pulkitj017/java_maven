@@ -1,20 +1,23 @@
 $licensesFile = "formatted-licenses.txt"
 $outdatedFile = "formatted-outdated.txt"
 $outputFile = "sbom-result.txt"
-# Read and process licenses file
+
+# Read and process licenses file with updated regex to capture full License text (with spaces)
 $licenses = Get-Content $licensesFile | ForEach-Object {
     if ($_ -notmatch '^Dependency\s+Version\s+License' -and $_ -notmatch '^-+$') {
-        $fields = $_ -split '\s{2,}'
-        if ($fields.Length -ge 3) {
+        # Regex to capture: Dependency, Version, License (all text after version)
+        $match = [regex]::Match($_, '^\s*(\S+)\s+(\S+)\s+(.+)$')
+        if ($match.Success) {
             [PSCustomObject]@{
-                Dependency = $fields[0].Trim()
-                Version = $fields[1].Trim()
-                License = $fields[2].Trim()
+                Dependency = $match.Groups[1].Value.Trim()
+                Version = $match.Groups[2].Value.Trim()
+                License = $match.Groups[3].Value.Trim()
             }
         }
     }
 }
-# Read and process outdated file
+
+# Read and process outdated file (simpler, no change needed)
 $outdated = Get-Content $outdatedFile | ForEach-Object {
     if ($_ -notmatch '^Dependency\s+Current\s+Latest' -and $_ -notmatch '^-+$') {
         $fields = $_ -split '\s{2,}'
@@ -27,9 +30,11 @@ $outdated = Get-Content $outdatedFile | ForEach-Object {
         }
     }
 }
-# Initialize the output hashtable to prevent duplicates
+
+# Initialize a hashtable to store unique merged entries
 $outputHash = @{}
-# Process licenses file
+
+# Process licenses file first, merge with outdated info if present
 foreach ($license in $licenses) {
     $outdatedDep = $outdated | Where-Object { $_.Dependency -eq $license.Dependency }
     $currentVersion = $license.Version
@@ -42,7 +47,6 @@ foreach ($license in $licenses) {
             $latestVersion += "**"
         }
     }
-    # Store unique dependencies in a hashtable
     $outputHash[$license.Dependency] = [PSCustomObject]@{
         Dependency = $license.Dependency
         CurrentVersion = $currentVersion
@@ -50,7 +54,8 @@ foreach ($license in $licenses) {
         License = $license.License
     }
 }
-# Add entries from outdated file not in the licenses file
+
+# Add outdated entries that were not in licenses file, mark License as N/A
 foreach ($outdatedDep in $outdated) {
     if (-not $outputHash.ContainsKey($outdatedDep.Dependency)) {
         $currentVersion = $outdatedDep.CurrentVersion
@@ -67,5 +72,12 @@ foreach ($outdatedDep in $outdated) {
         }
     }
 }
-# Write the output to the file, sorted by Dependency
-$outputHash.Values | Sort-Object Dependency | Format-Table -AutoSize | Out-File $outputFile
+
+# Output sorted result as a formatted table to file
+# Use Out-String to capture the formatted table text nicely
+$outputText = $outputHash.Values | Sort-Object Dependency | Format-Table -AutoSize | Out-String
+
+# Save to output file with UTF8 encoding
+Set-Content -Path $outputFile -Value $outputText -Encoding UTF8
+
+Write-Host "Merged SBOM file generated: $outputFile"
