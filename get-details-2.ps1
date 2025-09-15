@@ -1,4 +1,4 @@
-$xmlFilePath = "target/generated-resources/licenses/licenses.xml"
+$xmlFilePath = "target/generated-resources/licenses.xml"
 $outputFilePath = "licenses_output.txt"
 try {
     $xml = [xml](Get-Content $xmlFilePath)
