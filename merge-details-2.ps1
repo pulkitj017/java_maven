@@ -1,29 +1,11 @@
 $licensesFile = "formatted-licenses.txt"
 $outdatedFile = "formatted-outdated.txt"
 $outputFile = "sbom-result.txt"
-
-# Helper function to split lines by at least 2 spaces
-function Split-Columns($line, $expectedCols) {
-    $fields = @()
-    $regex = '\s{2,}'
-    if ($expectedCols -eq 3) {
-        # Dependency | Version | License (License can have spaces)
-        $matches = $line -split $regex, 3
-        $fields = $matches
-    }
-    elseif ($expectedCols -eq 3) {
-        # Dependency | Current | Latest
-        $matches = $line -split $regex, 3
-        $fields = $matches
-    }
-    return $fields
-}
-
 # Read and process licenses file
 $licenses = Get-Content $licensesFile | ForEach-Object {
     if ($_ -notmatch '^Dependency\s+Version\s+License' -and $_ -notmatch '^-+$') {
-        $fields = Split-Columns $_ 3
-        if ($fields.Length -eq 3) {
+        $fields = $_ -split '\s{2,}'
+        if ($fields.Length -ge 3) {
             [PSCustomObject]@{
                 Dependency = $fields[0].Trim()
                 Version = $fields[1].Trim()
@@ -32,12 +14,11 @@ $licenses = Get-Content $licensesFile | ForEach-Object {
         }
     }
 }
-
 # Read and process outdated file
 $outdated = Get-Content $outdatedFile | ForEach-Object {
     if ($_ -notmatch '^Dependency\s+Current\s+Latest' -and $_ -notmatch '^-+$') {
-        $fields = Split-Columns $_ 3
-        if ($fields.Length -eq 3) {
+        $fields = $_ -split '\s{2,}'
+        if ($fields.Length -ge 3) {
             [PSCustomObject]@{
                 Dependency = $fields[0].Trim()
                 CurrentVersion = $fields[1].Trim()
@@ -46,11 +27,9 @@ $outdated = Get-Content $outdatedFile | ForEach-Object {
         }
     }
 }
-
 # Initialize the output hashtable to prevent duplicates
 $outputHash = @{}
-
-# Merge licenses and outdated info
+# Process licenses file
 foreach ($license in $licenses) {
     $outdatedDep = $outdated | Where-Object { $_.Dependency -eq $license.Dependency }
     $currentVersion = $license.Version
@@ -63,6 +42,7 @@ foreach ($license in $licenses) {
             $latestVersion += "**"
         }
     }
+    # Store unique dependencies in a hashtable
     $outputHash[$license.Dependency] = [PSCustomObject]@{
         Dependency = $license.Dependency
         CurrentVersion = $currentVersion
@@ -70,8 +50,7 @@ foreach ($license in $licenses) {
         License = $license.License
     }
 }
-
-# Add outdated dependencies not in licenses
+# Add entries from outdated file not in the licenses file
 foreach ($outdatedDep in $outdated) {
     if (-not $outputHash.ContainsKey($outdatedDep.Dependency)) {
         $currentVersion = $outdatedDep.CurrentVersion
@@ -88,6 +67,5 @@ foreach ($outdatedDep in $outdated) {
         }
     }
 }
-
-# Write output sorted by Dependency
+# Write the output to the file, sorted by Dependency
 $outputHash.Values | Sort-Object Dependency | Format-Table -AutoSize | Out-File $outputFile
