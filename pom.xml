@@ -65,7 +65,7 @@
                       </execution>
                     </executions>
                     <configuration>
-                      <licensesOutputDirectory>${project.build.directory}/generated-resources/licenses</licensesOutputDirectory>
+                      <licensesOutputDirectory>${project.build.directory}/target/generated-resources/licenses</licensesOutputDirectory>
                     </configuration>
                   </plugin>
         </plugins>
