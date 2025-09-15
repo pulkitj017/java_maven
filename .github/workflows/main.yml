@@ -1,10 +1,10 @@
 name: Java Maven SBOM Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
-  pull_request:
 
 jobs:
   build:
