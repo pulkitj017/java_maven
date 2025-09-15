@@ -81,7 +81,19 @@ jobs:
           pwsh -File ./merge-details-1.ps1
           echo "After merge-details-1.ps1:"
           ls -l
-          cat sbom-result.txt || echo "sbom-result.txt not found"
+
+      - name: Debug formatted-licenses.txt
+        run: |
+          echo "=== Contents of formatted-licenses.txt ==="
+          cat formatted-licenses.txt || echo "formatted-licenses.txt not found"
+          echo "=========================================="
+      
+      - name: Debug formatted-outdated.txt
+        run: |
+          echo "=== Contents of formatted-outdated.txt ==="
+          cat formatted-outdated.txt || echo "formatted-outdated.txt not found"
+          echo "=========================================="
+
 
       - name: Run merge-details-2.ps1
         run: |
