@@ -185,24 +185,24 @@ jobs:
           echo "After get-details-2.ps1:"
           ls -l
 
-      - name: Upload formatted-licenses.txt
-        uses: actions/upload-artifact@v4
-        with:
-          name: formatted-licenses
-          path: formatted-licenses.txt
-
       - name: Upload formatted-outdated.txt
         uses: actions/upload-artifact@v4
         with:
           name: formatted-outdated
           path: formatted-outdated.txt
-
+      
       - name: Run merge-details-1.ps1
         run: |
           pwsh -File ./merge-details-1.ps1
           echo "After merge-details-1.ps1:"
           ls -l
           cat sbom-result.txt || echo "sbom-result.txt not found"
+
+      - name: Upload formatted-licenses.txt
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-licenses
+          path: formatted-licenses.txt
 
       - name: Run merge-details-2.ps1
         run: |
@@ -211,18 +211,18 @@ jobs:
           ls -l
           cat sbom-result.txt || echo "sbom-result.txt not found"
 
-      - name: Run Trivy Scan
-        run: |
-          bash ./trivy.sh
-          echo "After trivy.sh:"
-          ls -l
-          cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
+      # - name: Run Trivy Scan
+      #   run: |
+      #     bash ./trivy.sh
+      #     echo "After trivy.sh:"
+      #     ls -l
+      #     cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
 
-      - name: Upload Trivy Vulnerabilities
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-vulnerabilities
-          path: trivy-vulnerabilities.txt
+      # - name: Upload Trivy Vulnerabilities
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: trivy-vulnerabilities
+      #     path: trivy-vulnerabilities.txt
 
       - name: Upload SBOM Result
         uses: actions/upload-artifact@v4
