@@ -43,6 +43,19 @@ jobs:
           chmod +x java-install.sh
           sudo bash ./java-install.sh
 
+      - name: Debug target folder
+        run: |
+          echo "=== Root directory ==="
+          ls -l
+          echo "=== target folder ==="
+          ls -l target || echo "target folder does not exist"
+          echo "=== generated-resources folder ==="
+          ls -l target/generated-resources || echo "generated-resources folder does not exist"
+          echo "=== licenses folder ==="
+          ls -l target/generated-resources/licenses || echo "licenses folder does not exist"
+          echo "=== List licenses.xml files ==="
+          find target/generated-resources/licenses -name "*.xml" || echo "No XML files found"
+
       - name: Install PowerShell
         run: |
           wget https://github.com/PowerShell/PowerShell/releases/download/v7.5.0/powershell_7.5.0-1.deb_amd64.deb
