@@ -1,0 +1,60 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - echo "Installing dependencies..."
+      - apt-get update -y
+      - apt-get install -y wget curl unzip maven
+      - java -version
+      - mvn -version
+
+  pre_build:
+    commands:
+      - echo "Cleaning up target folder..."
+      - rm -rf target
+      - chmod +x java-install.sh
+      - bash ./java-install.sh
+
+      - echo "Installing PowerShell..."
+      - wget https://github.com/PowerShell/PowerShell/releases/download/v7.5.0/powershell_7.5.0-1.deb_amd64.deb
+      - dpkg -i powershell_7.5.0-1.deb_amd64.deb || true
+      - apt-get --fix-broken install -y
+      - pwsh --version
+      - rm -rf powershell_7.5.0-1.deb_amd64.deb
+
+  build:
+    commands:
+      - echo "Building project with Maven..."
+      - mvn -B package --file pom.xml
+
+      - echo "Running get-details-1.ps1..."
+      - pwsh ./get-details-1.ps1
+      - ls -l
+
+      - echo "Running get-details-2.ps1..."
+      - pwsh ./get-details-2.ps1
+      - ls -l
+
+      - echo "Running merge-details-1.ps1..."
+      - pwsh ./merge-details-1.ps1
+      - ls -l
+      - cat sbom-result.txt || echo "sbom-result.txt not found"
+
+      - echo "Running merge-details-2.ps1..."
+      - pwsh ./merge-details-2.ps1
+      - ls -l
+      - cat sbom-result.txt || echo "sbom-result.txt not found"
+
+      - echo "Running Trivy Scan..."
+      - chmod +x trivy.sh
+      - bash ./trivy.sh
+      - ls -l
+      - cat trivy-vulnerabilities.txt || echo "trivy-vulnerabilities.txt not found"
+
+artifacts:
+  files:
+    - trivy-vulnerabilities.txt
+    - sbom-result.txt
